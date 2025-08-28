@@ -92,7 +92,10 @@ app.post('/api/generate-cover', async (req, res) => {
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.text();
       console.error('OpenAI API error:', openaiResponse.status, errorData);
-      throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorData}`);
+      return res.status(500).json({ 
+        error: `OpenAI API error: ${openaiResponse.status}`,
+        details: errorData
+      });
     }
 
     const openaiData = await openaiResponse.json();
@@ -107,8 +110,8 @@ app.post('/api/generate-cover', async (req, res) => {
   } catch (error) {
     console.error('Cover generation error:', error);
     res.status(500).json({ 
-      error: 'Cover generation failed',
-      details: error.message 
+      error: 'Failed to generate cover',
+      details: error.message
     });
   }
 });
