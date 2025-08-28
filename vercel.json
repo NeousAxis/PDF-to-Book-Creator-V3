@@ -5,12 +5,8 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-<<<<<<< HEAD
-        "distDir": "dist"
-=======
         "distDir": "dist",
         "installCommand": "npm install"
->>>>>>> aec467ed3928a3c06b776f5151452efa07227606
       }
     },
     {
@@ -18,15 +14,12 @@
       "use": "@vercel/node"
     }
   ],
-<<<<<<< HEAD
   "functions": {
     "server.js": {
       "maxDuration": 30,
       "memory": 1024
     }
   },
-=======
->>>>>>> aec467ed3928a3c06b776f5151452efa07227606
   "routes": [
     {
       "src": "/api/(.*)",
