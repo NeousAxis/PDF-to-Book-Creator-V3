@@ -54,22 +54,56 @@ app.post('/api/generate-cover', async (req, res) => {
     console.log('Generate cover endpoint hit');
     console.log('Request body:', req.body);
     
-    const { prompt, style = 'realistic' } = req.body;
+    const { prompt, bookTitle, authorName, style = 'realistic' } = req.body;
     
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    // OpenAI API call would go here
-    // For now, return a placeholder
-    res.json({
-      message: 'Cover generation endpoint ready',
-      prompt,
-      style
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.log('OpenAI API key not found, returning mock response');
+      return res.json({
+        success: true,
+        imageUrl: '/api/placeholder/400/600',
+        message: 'Mock cover generated (OpenAI API key not configured)'
+      });
+    }
+
+    // OpenAI DALL-E API call
+    const openaiResponse = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt: `Professional book cover design: ${prompt}. Title: "${bookTitle}", Author: "${authorName}". High quality, print-ready, ${style} style.`,
+        n: 1,
+        size: '1024x1024',
+        quality: 'hd'
+      })
     });
+
+    if (!openaiResponse.ok) {
+      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+    }
+
+    const openaiData = await openaiResponse.json();
+    
+    res.json({
+      success: true,
+      imageUrl: openaiData.data[0].url,
+      message: 'Cover generated successfully'
+    });
+    
   } catch (error) {
     console.error('Cover generation error:', error);
-    res.status(500).json({ error: 'Cover generation failed' });
+    res.status(500).json({ 
+      error: 'Cover generation failed',
+      details: error.message 
+    });
   }
 });
 
