@@ -183,7 +183,7 @@ app.post('/api/lulu-cost', async (req, res) => {
       });
     }
 
-    // For now, return mock data (you can implement real Lulu API call later)
+    // Mock calculation for now
     const basePrice = pageCount * 0.012 + 3.50;
     const unitPrice = basePrice;
     const subtotal = unitPrice * quantity;
