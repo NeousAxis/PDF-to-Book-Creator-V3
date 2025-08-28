@@ -64,3 +64,5 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Updated for Vercel compatibility Thu Aug 28 11:14:48 CEST 2025
