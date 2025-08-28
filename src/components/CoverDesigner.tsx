@@ -65,6 +65,7 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
 
     setIsGenerating(true);
     setError(null);
+    setSuccess(null);
     setGenerationProgress(0);
 
     try {
@@ -86,8 +87,8 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
         },
         body: JSON.stringify({
           prompt: generationPrompt,
-          bookTitle,
-          authorName,
+          bookTitle: currentBookTitle,
+          authorName: currentAuthorName,
           style: 'professional'
         })
       });
@@ -96,17 +97,23 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
       setGenerationProgress(100);
 
       if (!response.ok) {
-        throw new Error('Failed to generate cover');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate cover');
       }
 
       const data = await response.json();
       
-      // For now, we'll simulate a successful generation
-      setSuccess('Cover generated successfully! (Note: AI generation will be implemented with OpenAI API)');
-      setImagePreview('/api/placeholder/400/600'); // Placeholder for now
+      if (data.success) {
+        setSuccess(data.message || 'Cover generated successfully!');
+        setImagePreview(data.imageUrl);
+        setActiveTab('upload'); // Switch to upload tab to show the generated image
+      } else {
+        throw new Error(data.error || 'Failed to generate cover');
+      }
       
     } catch (err) {
-      setError('Failed to generate cover. Please try again.');
+      console.error('Cover generation error:', err);
+      setError(`Failed to generate cover: ${err.message}`);
     } finally {
       setIsGenerating(false);
       setTimeout(() => setGenerationProgress(0), 1000);

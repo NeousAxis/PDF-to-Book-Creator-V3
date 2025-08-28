@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('dist'));
 
-// Configure multer for Vercel (serverless) - use memory storage
+// Configure multer for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -20,35 +20,32 @@ const upload = multer({
   }
 });
 
-// API Routes
+// PDF Upload endpoint
 app.post('/api/upload-pdf', upload.single('pdf'), (req, res) => {
-  console.log('Upload endpoint hit:', req.file ? 'File received' : 'No file');
-  console.log('Request headers:', req.headers);
-  console.log('Request body keys:', Object.keys(req.body));
-  
-  if (!req.file) {
-    console.log('Error: No file uploaded');
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-  
-  console.log('File details:', {
-    filename: req.file.originalname,
-    size: req.file.size,
-    mimetype: req.file.mimetype
-  });
-  
-  res.json({
-    message: 'File uploaded successfully',
-    file: {
-      filename: req.file.originalname,
-      originalname: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
-      buffer: req.file.buffer.toString('base64')
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
-  });
+
+    console.log('File uploaded:', {
+      filename: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+
+    res.json({
+      success: true,
+      filename: req.file.originalname,
+      size: req.file.size,
+      pages: Math.ceil(req.file.size / 50000) // Rough estimation
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
+  }
 });
 
+// AI Cover Generation endpoint
 app.post('/api/generate-cover', async (req, res) => {
   try {
     console.log('Generate cover endpoint hit');
@@ -65,10 +62,15 @@ app.post('/api/generate-cover', async (req, res) => {
       console.log('OpenAI API key not found, returning mock response');
       return res.json({
         success: true,
-        imageUrl: '/api/placeholder/400/600',
+        imageUrl: 'https://via.placeholder.com/400x600/4f46e5/ffffff?text=AI+Generated+Cover',
         message: 'Mock cover generated (OpenAI API key not configured)'
       });
     }
+
+    // Construct detailed prompt for DALL-E
+    const detailedPrompt = `Professional book cover design: ${prompt}. Title: "${bookTitle || 'Untitled'}", Author: "${authorName || 'Unknown Author'}". High quality, print-ready, ${style} style, book cover layout with title and author text placement.`;
+
+    console.log('Calling OpenAI API with prompt:', detailedPrompt);
 
     // OpenAI DALL-E API call
     const openaiResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -79,18 +81,22 @@ app.post('/api/generate-cover', async (req, res) => {
       },
       body: JSON.stringify({
         model: 'dall-e-3',
-        prompt: `Professional book cover design: ${prompt}. Title: "${bookTitle}", Author: "${authorName}". High quality, print-ready, ${style} style.`,
+        prompt: detailedPrompt,
         n: 1,
         size: '1024x1024',
-        quality: 'hd'
+        quality: 'hd',
+        style: style === 'realistic' ? 'natural' : 'vivid'
       })
     });
 
     if (!openaiResponse.ok) {
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+      const errorData = await openaiResponse.text();
+      console.error('OpenAI API error:', openaiResponse.status, errorData);
+      throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorData}`);
     }
 
     const openaiData = await openaiResponse.json();
+    console.log('OpenAI response received successfully');
     
     res.json({
       success: true,
@@ -107,6 +113,7 @@ app.post('/api/generate-cover', async (req, res) => {
   }
 });
 
+// Lulu Order endpoint
 app.post('/api/lulu-order', async (req, res) => {
   try {
     console.log('Lulu order endpoint hit');
@@ -117,6 +124,7 @@ app.post('/api/lulu-order', async (req, res) => {
   }
 });
 
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
