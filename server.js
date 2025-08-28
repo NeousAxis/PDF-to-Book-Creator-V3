@@ -12,17 +12,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('dist'));
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+// Configure multer for file uploads - USE MEMORY STORAGE for Vercel
+const storage = multer.memoryStorage(); // Changed from diskStorage to memoryStorage
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
   }
 });
-
-const upload = multer({ storage });
 
 // API Routes
 app.post('/api/upload-pdf', upload.single('pdf'), (req, res) => {
@@ -33,10 +30,11 @@ app.post('/api/upload-pdf', upload.single('pdf'), (req, res) => {
   res.json({
     message: 'File uploaded successfully',
     file: {
-      filename: req.file.filename,
+      filename: req.file.originalname,
       originalname: req.file.originalname,
       size: req.file.size,
-      path: req.file.path
+      mimetype: req.file.mimetype,
+      // Note: file is now in req.file.buffer instead of saved to disk
     }
   });
 });
