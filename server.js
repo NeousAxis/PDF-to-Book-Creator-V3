@@ -22,9 +22,18 @@ const upload = multer({
 
 // API Routes
 app.post('/api/upload-pdf', upload.single('pdf'), (req, res) => {
+  console.log('Upload endpoint hit:', req.file ? 'File received' : 'No file');
+  
   if (!req.file) {
+    console.log('Error: No file uploaded');
     return res.status(400).json({ error: 'No file uploaded' });
   }
+  
+  console.log('File details:', {
+    filename: req.file.originalname,
+    size: req.file.size,
+    mimetype: req.file.mimetype
+  });
   
   res.json({
     message: 'File uploaded successfully',
@@ -33,7 +42,7 @@ app.post('/api/upload-pdf', upload.single('pdf'), (req, res) => {
       originalname: req.file.originalname,
       size: req.file.size,
       mimetype: req.file.mimetype,
-      buffer: req.file.buffer.toString('base64') // Convert buffer to base64 for processing
+      buffer: req.file.buffer.toString('base64')
     }
   });
 });

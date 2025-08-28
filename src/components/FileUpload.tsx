@@ -54,16 +54,25 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          const documentFile: DocumentFile = {
-            file,
-            type: file.name.endsWith('.pdf') ? 'pdf' : file.name.endsWith('.docx') ? 'docx' : 'odt',
-            pages: 0, // Will be calculated by backend
-            validationStatus: 'normalized'
-          };
-          resolve(documentFile);
+          try {
+            const response = JSON.parse(xhr.responseText);
+            const documentFile: DocumentFile = {
+              file,
+              type: file.name.endsWith('.pdf') ? 'pdf' : file.name.endsWith('.docx') ? 'docx' : 'odt',
+              pages: 0, // Will be calculated later
+              validationStatus: 'normalized'
+            };
+            resolve(documentFile);
+          } catch (parseError) {
+            reject(new Error('Invalid server response'));
+          }
         } else {
-          reject(new Error('Upload failed'));
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            reject(new Error(errorResponse.error || 'Upload failed'));
+          } catch {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
         }
       });
 
