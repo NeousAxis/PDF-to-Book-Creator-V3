@@ -13,6 +13,9 @@ interface FileUploadProps {
   maxFileSize?: number;
 }
 
+// Get API base URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 const FileUpload: React.FC<FileUploadProps> = ({
   onFileUploaded,
   acceptedFileTypes = ['.pdf', '.docx', '.odt'],
@@ -63,15 +66,16 @@ const FileUpload: React.FC<FileUploadProps> = ({
           };
           resolve(documentFile);
         } else {
-          reject(new Error('Upload failed'));
+          reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
         }
       });
 
       xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed'));
+        reject(new Error('Network error during upload'));
       });
 
-      xhr.open('POST', '/api/upload-pdf');
+      // Use the configured API base URL
+      xhr.open('POST', `${API_BASE_URL}/api/upload-pdf`);
       xhr.send(formData);
     });
   };
@@ -97,6 +101,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       setUploadedFile(documentFile);
       onFileUploaded(documentFile);
     } catch (err) {
+      console.error('Upload error:', err);
       setError('Failed to upload file. Please try again.');
     } finally {
       setUploading(false);

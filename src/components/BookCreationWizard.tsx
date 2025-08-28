@@ -107,9 +107,7 @@ export default function BookCreationWizard() {
       case 1: // Template
         return selectedTemplate !== null;
       case 2: // Cover
-        return selectedTemplate && 
-               (coverDesign.style?.id || coverDesign.frontImage || coverDesign.backCoverGenerated) &&
-               document?.pages && document.pages > 0;
+        return coverDesign.frontImage || coverDesign.backCoverGenerated;
       case 3: // Cost
         return costCalculation !== null;
       case 4: // Submit
@@ -151,8 +149,7 @@ export default function BookCreationWizard() {
       case 0:
         return (
           <FileUpload
-            onFileSelect={handleFileSelect}
-            currentFile={document || undefined}
+            onFileUploaded={handleFileSelect}
           />
         );
       case 1:
@@ -168,10 +165,9 @@ export default function BookCreationWizard() {
         }
         return (
           <CoverDesigner
-            template={selectedTemplate}
-            pageCount={document.pages}
-            coverDesign={coverDesign}
-            onCoverDesignChange={handleCoverDesignChange}
+            onCoverDesigned={handleCoverDesignChange}
+            bookTitle={document?.file?.name?.replace(/\.[^/.]+$/, '') || ''}
+            authorName={''}
           />
         );
       case 3:
