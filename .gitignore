@@ -200,3 +200,4 @@ generated/
 
 # Workspace files
 workspace/
+node_modules
