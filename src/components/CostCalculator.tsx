@@ -52,11 +52,35 @@ export default function CostCalculator({ template, pageCount, onCostCalculated }
     setError(null);
     
     try {
-      const cost = await luluAPI.calculateCost(template.podPackageId, pageCount, quantity);
-      setCostCalculation(cost);
-      onCostCalculated(cost);
+      const response = await fetch('/api/lulu-cost', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          podPackageId: template.podPackageId,
+          pageCount,
+          quantity
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ 
+          error: `HTTP ${response.status}: ${response.statusText}` 
+        }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setCostCalculation(data.cost);
+        onCostCalculated(data.cost);
+      } else {
+        throw new Error(data.error || 'Failed to calculate cost');
+      }
     } catch (err) {
-      setError('Failed to calculate cost. Please try again.');
+      setError(`Failed to calculate cost: ${err.message}`);
       console.error('Cost calculation error:', err);
     } finally {
       setIsCalculating(false);

@@ -7,6 +7,15 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Add environment variables logging for debugging
+console.log('Environment check:', {
+  hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+  openAIKeyPrefix: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 7) : 'none',
+  hasLuluClientId: !!process.env.LULU_CLIENT_ID,
+  hasLuluClientSecret: !!process.env.LULU_CLIENT_SECRET,
+  nodeEnv: process.env.NODE_ENV
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -150,6 +159,59 @@ app.post('/api/lulu-order', async (req, res) => {
   } catch (error) {
     console.error('Lulu order error:', error);
     res.status(500).json({ error: 'Order failed' });
+  }
+});
+
+// Lulu Cost Calculation endpoint
+app.post('/api/lulu-cost', async (req, res) => {
+  try {
+    console.log('Lulu cost calculation endpoint hit');
+    console.log('Request body:', req.body);
+    
+    const { podPackageId, pageCount, quantity = 1 } = req.body;
+    
+    if (!podPackageId || !pageCount) {
+      return res.status(400).json({ error: 'podPackageId and pageCount are required' });
+    }
+
+    // Check if Lulu credentials are available
+    if (!process.env.LULU_CLIENT_ID || !process.env.LULU_CLIENT_SECRET) {
+      console.error('Lulu credentials not found in environment variables');
+      return res.status(500).json({ 
+        error: 'Lulu API credentials not configured',
+        details: 'Please check server configuration'
+      });
+    }
+
+    // For now, return mock data (you can implement real Lulu API call later)
+    const basePrice = pageCount * 0.012 + 3.50;
+    const unitPrice = basePrice;
+    const subtotal = unitPrice * quantity;
+    const taxes = subtotal * 0.08;
+    const fulfillmentFee = 1.50;
+    const shippingCost = quantity === 1 ? 3.99 : 5.99;
+    const total = subtotal + taxes + fulfillmentFee + shippingCost;
+
+    res.json({
+      success: true,
+      cost: {
+        unitPrice,
+        discounts: 0,
+        taxes,
+        fulfillmentFee,
+        shippingCost,
+        subtotal,
+        total,
+        quantity
+      }
+    });
+    
+  } catch (error) {
+    console.error('Lulu cost calculation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to calculate cost',
+      details: error.message
+    });
   }
 });
 
