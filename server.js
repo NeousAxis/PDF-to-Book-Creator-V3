@@ -50,27 +50,40 @@ app.post('/api/generate-cover', async (req, res) => {
   try {
     console.log('Generate cover endpoint hit');
     console.log('Request body:', req.body);
+    console.log('Environment check:', {
+      hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+      keyLength: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0
+    });
     
     const { prompt, bookTitle, authorName, style = 'realistic' } = req.body;
     
     if (!prompt) {
+      console.error('Missing prompt in request');
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
     // Check if OpenAI API key is available
     if (!process.env.OPENAI_API_KEY) {
-      console.log('OpenAI API key not found, returning mock response');
-      return res.json({
-        success: true,
-        imageUrl: 'https://via.placeholder.com/400x600/4f46e5/ffffff?text=AI+Generated+Cover',
-        message: 'Mock cover generated (OpenAI API key not configured)'
+      console.error('OpenAI API key not found in environment variables');
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        details: 'Please check server configuration'
+      });
+    }
+
+    // Validate API key format
+    if (!process.env.OPENAI_API_KEY.startsWith('sk-')) {
+      console.error('Invalid OpenAI API key format');
+      return res.status(500).json({ 
+        error: 'Invalid OpenAI API key format',
+        details: 'API key should start with sk-'
       });
     }
 
     // Construct detailed prompt for DALL-E
     const detailedPrompt = `Professional book cover design: ${prompt}. Title: "${bookTitle || 'Untitled'}", Author: "${authorName || 'Unknown Author'}". High quality, print-ready, ${style} style, book cover layout with title and author text placement.`;
 
-    console.log('Calling OpenAI API with prompt:', detailedPrompt);
+    console.log('Calling OpenAI API with prompt:', detailedPrompt.substring(0, 100) + '...');
 
     // OpenAI DALL-E API call
     const openaiResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -89,12 +102,20 @@ app.post('/api/generate-cover', async (req, res) => {
       })
     });
 
+    console.log('OpenAI API response status:', openaiResponse.status);
+
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.text();
-      console.error('OpenAI API error:', openaiResponse.status, errorData);
+      console.error('OpenAI API error details:', {
+        status: openaiResponse.status,
+        statusText: openaiResponse.statusText,
+        error: errorData
+      });
+      
       return res.status(500).json({ 
         error: `OpenAI API error: ${openaiResponse.status}`,
-        details: errorData
+        details: errorData,
+        suggestion: openaiResponse.status === 401 ? 'Please check your OpenAI API key' : 'Please try again later'
       });
     }
 
@@ -108,10 +129,15 @@ app.post('/api/generate-cover', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Cover generation error:', error);
+    console.error('Cover generation error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     res.status(500).json({ 
       error: 'Failed to generate cover',
-      details: error.message
+      details: error.message,
+      type: error.name
     });
   }
 });

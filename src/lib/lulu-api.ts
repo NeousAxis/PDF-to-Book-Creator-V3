@@ -19,6 +19,10 @@ class LuluAPI {
     }
 
     try {
+      console.log('Attempting Lulu API authentication...');
+      console.log('API Base:', LULU_API_BASE);
+      console.log('Client ID available:', !!CLIENT_ID);
+      
       const response = await fetch(`${LULU_API_BASE}/oauth2/token`, {
         method: 'POST',
         headers: {
@@ -31,8 +35,16 @@ class LuluAPI {
         }),
       });
 
+      console.log('Lulu auth response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Authentication failed');
+        const errorText = await response.text();
+        console.error('Lulu authentication failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
+        throw new Error(`Authentication failed: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -40,6 +52,7 @@ class LuluAPI {
       
       // Store token securely
       localStorage.setItem('lulu_access_token', this.accessToken);
+      console.log('Lulu authentication successful');
       
       return this.accessToken;
     } catch (error) {

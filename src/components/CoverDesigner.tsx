@@ -96,17 +96,23 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
       clearInterval(progressInterval);
       setGenerationProgress(100);
 
+      console.log('Cover generation response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({ 
+          error: `HTTP ${response.status}: ${response.statusText}` 
+        }));
+        console.error('Cover generation failed:', errorData);
+        throw new Error(errorData.error || errorData.details || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('Cover generation response:', data);
       
       if (data.success) {
         setSuccess(data.message || 'Cover generated successfully!');
         setImagePreview(data.imageUrl);
-        setActiveTab('upload'); // Switch to upload tab to show the generated image
+        setActiveTab('upload');
       } else {
         throw new Error(data.error || 'Failed to generate cover');
       }
