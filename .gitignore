@@ -200,5 +200,10 @@ generated/
 
 # Workspace files
 workspace/
+<<<<<<< HEAD
 .env
 .env
+=======
+node_modules
+pnpm-lock.yaml
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606

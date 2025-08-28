@@ -220,6 +220,33 @@ Generated on: ${new Date().toLocaleString()}
     }
   };
 
+<<<<<<< HEAD
+=======
+  const generateRealPDF = async () => {
+    try {
+      const response = await fetch('/api/generate-preview-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          document: document,
+          template: template,
+          coverDesign: coverDesign
+        })
+      });
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${document.file.name.replace(/\.[^/.]+$/, '')}_preview.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+    }
+  };
+
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
   if (printJob) {
     return (
       <div className="space-y-6">

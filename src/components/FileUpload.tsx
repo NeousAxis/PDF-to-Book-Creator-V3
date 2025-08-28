@@ -13,6 +13,12 @@ interface FileUploadProps {
   maxFileSize?: number;
 }
 
+<<<<<<< HEAD
+=======
+// Get API base URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
 const FileUpload: React.FC<FileUploadProps> = ({
   onFileUploaded,
   acceptedFileTypes = ['.pdf', '.docx', '.odt'],
@@ -54,6 +60,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200) {
+<<<<<<< HEAD
           try {
             const response = JSON.parse(xhr.responseText);
             const documentFile: DocumentFile = {
@@ -73,14 +80,34 @@ const FileUpload: React.FC<FileUploadProps> = ({
           } catch {
             reject(new Error(`Upload failed with status ${xhr.status}`));
           }
+=======
+          const response = JSON.parse(xhr.responseText);
+          const documentFile: DocumentFile = {
+            file,
+            type: file.name.endsWith('.pdf') ? 'pdf' : file.name.endsWith('.docx') ? 'docx' : 'odt',
+            pages: 0, // Will be calculated by backend
+            validationStatus: 'normalized'
+          };
+          resolve(documentFile);
+        } else {
+          reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
         }
       });
 
       xhr.addEventListener('error', () => {
+<<<<<<< HEAD
         reject(new Error('Upload failed'));
       });
 
       xhr.open('POST', '/api/upload-pdf');
+=======
+        reject(new Error('Network error during upload'));
+      });
+
+      // Use the configured API base URL
+      xhr.open('POST', `${API_BASE_URL}/api/upload-pdf`);
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
       xhr.send(formData);
     });
   };
@@ -106,6 +133,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
       setUploadedFile(documentFile);
       onFileUploaded(documentFile);
     } catch (err) {
+<<<<<<< HEAD
+=======
+      console.error('Upload error:', err);
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
       setError('Failed to upload file. Please try again.');
     } finally {
       setUploading(false);

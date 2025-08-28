@@ -25,6 +25,11 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
   const [activeTab, setActiveTab] = useState('upload');
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+<<<<<<< HEAD
+=======
+  const [currentAuthorName, setCurrentAuthorName] = useState(authorName);
+  const [currentBookTitle, setCurrentBookTitle] = useState(bookTitle);
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
   const [backCoverText, setBackCoverText] = useState('');
   const [authorBio, setAuthorBio] = useState('');
   const [generationPrompt, setGenerationPrompt] = useState('');
@@ -116,12 +121,20 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
       frontImage: coverImage || imagePreview,
       backText: backCoverText,
       authorBio: authorBio,
+<<<<<<< HEAD
       spineWidth: 0.5, // Will be calculated based on page count
+=======
+      spineWidth: 0.5,
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
       backCoverGenerated: !!backCoverText,
       backCoverData: backCoverText ? {
         description: backCoverText,
         authorBio: authorBio,
+<<<<<<< HEAD
         isbn: '', // Will be generated
+=======
+        isbn: '',
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
         publisher: 'Self-Published',
         category: 'General'
       } : undefined
@@ -252,6 +265,36 @@ const CoverDesigner: React.FC<CoverDesignerProps> = ({
             </TabsContent>
           </Tabs>
 
+<<<<<<< HEAD
+=======
+          {/* Book Details Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Book Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="bookTitle">Book Title</Label>
+                <Input
+                  id="bookTitle"
+                  value={currentBookTitle}
+                  onChange={(e) => setCurrentBookTitle(e.target.value)}
+                  placeholder="Enter your book title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="authorName">Author Name</Label>
+                <Input
+                  id="authorName"
+                  value={currentAuthorName}
+                  onChange={(e) => setCurrentAuthorName(e.target.value)}
+                  placeholder="Enter author name"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+>>>>>>> aec467ed3928a3c06b776f5151452efa07227606
           {/* Back Cover Content */}
           <Card>
             <CardHeader>
