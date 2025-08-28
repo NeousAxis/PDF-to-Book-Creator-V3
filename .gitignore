@@ -201,3 +201,4 @@ generated/
 # Workspace files
 workspace/
 .env
+.env
